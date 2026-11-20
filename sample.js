@@ -45,24 +45,58 @@ async function main() {
   //
   // Do the same here. Insert one book that has a publisher field
   // containing an embedded object with at least a name and a country.
+  await books.insertOne({
+    title: "The Little Prince",
+    publisher: { name: "Gallimard", country: "France" },
+  });
 
   // ----------------------------------------------------------
   // TODO 2 - insertOne with an array
   // ----------------------------------------------------------
   // Insert one book that has a tags field containing
   // an array of at least 3 strings.
+  await books.insertOne({
+    title: "Dune",
+    tags: ["sci-fi", "space", "classic"],
+  });
 
   // ----------------------------------------------------------
   // TODO 3 - insertMany
   // ----------------------------------------------------------
   // Insert at least 5 books in a single call using insertMany.
   // Include a mix: some with a publisher object, some with tags, some with both.
+  await books.insertMany([
+    {
+      title: "The Hobbit",
+      publisher: { name: "George Allen & Unwin", country: "United Kingdom" },
+      tags: ["fantasy", "adventure"],
+    },
+    {
+      title: "Madame Bovary",
+      publisher: { name: "Michel Levy Freres", country: "France" },
+    },
+    {
+      title: "One Hundred Years of Solitude",
+      tags: ["literary fiction", "magical realism"],
+    },
+    {
+      title: "The Name of the Rose",
+      publisher: { name: "Bompiani", country: "Italy" },
+      tags: ["mystery", "historical fiction"],
+    },
+    {
+      title: "Things Fall Apart",
+    },
+  ]);
 
   // ----------------------------------------------------------
   // TODO 4 - find all documents
   // ----------------------------------------------------------
   // Retrieve every document in the collection and log each title.
   // Hint: find() returns a cursor - call .toArray() to get an array.
+  const allBooks = await books.find().toArray();
+  console.log("All book titles:");
+  allBooks.forEach((book) => console.log(`- ${book.title}`));
 
   // ----------------------------------------------------------
   // TODO 5 - findOne with dot notation
@@ -71,12 +105,19 @@ async function main() {
   // Dot notation lets you filter on a field inside an embedded object:
   //   { "publisher.country": "France" }
   // Log the title of the result.
+  const frenchBook = await books.findOne({ "publisher.country": "France" });
+  console.log("First book published in France:", frenchBook.title);
 
   // ----------------------------------------------------------
   // TODO 6 - find with a filter
   // ----------------------------------------------------------
   // Find all books whose publisher.country is "France".
   // Log how many there are and list their titles.
+  const frenchBooks = await books
+    .find({ "publisher.country": "France" })
+    .toArray();
+  console.log(`Books published in France (${frenchBooks.length}):`);
+  frenchBooks.forEach((book) => console.log(`- ${book.title}`));
 
   // ----------------------------------------------------------
   // TODO 7 - find with $exists
@@ -84,6 +125,9 @@ async function main() {
   // Find all books that have a tags field, regardless of its value.
   //   { tags: { $exists: true } }
   // Log each title and its tags array.
+  const taggedBooks = await books.find({ tags: { $exists: true } }).toArray();
+  console.log("Books with tags:");
+  taggedBooks.forEach((book) => console.log(`- ${book.title}: ${book.tags.join(", ")}`));
 
   // Always close the connection when you are done.
   await client.close();
